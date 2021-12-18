@@ -14,6 +14,10 @@ from torch_utils.ops import conv2d_resample
 from torch_utils.ops import upfirdn2d
 from torch_utils.ops import bias_act
 from torch_utils.ops import fma
+from .g_mlp_pytorch import Residual, PreNorm, gMLPBlock
+import torch.nn as nn
+from einops import rearrange, repeat
+from einops.layers.torch import Rearrange, Reduce
 
 #----------------------------------------------------------------------------
 
@@ -283,6 +287,38 @@ class SynthesisLayer(torch.nn.Module):
             self.noise_strength = torch.nn.Parameter(torch.zeros([]))
         self.bias = torch.nn.Parameter(torch.zeros([out_channels]))
 
+        ######## gmlp part
+
+        if self.resolution < 256:
+
+            num_patches = self.resolution**2
+            dim = in_channels
+            dim_ff = dim*4
+            if self.resolution == 128:
+                self.to_embed = nn.Sequential(
+                    Rearrange('b c h w -> b (h w) c'),
+                    nn.Linear(out_channels, dim).half()
+                )
+
+                self.gmlpblock = Residual(PreNorm(dim, gMLPBlock(dim = dim, heads = 1, dim_ff = dim_ff, seq_len = num_patches, attn_dim = None))).half()
+
+                self.to_img = nn.Sequential(
+                    nn.Linear(dim, out_channels).half(),
+                    Rearrange('b (h w) c -> b c h w', h=self.resolution, w=self.resolution)
+                )
+            else:
+                self.to_embed = nn.Sequential(
+                    Rearrange('b c h w -> b (h w) c'),
+                    nn.Linear(out_channels, dim)
+                )
+
+                self.gmlpblock = Residual(PreNorm(dim, gMLPBlock(dim = dim, heads = 1, dim_ff = dim_ff, seq_len = num_patches, attn_dim = None)))
+
+                self.to_img = nn.Sequential(
+                    nn.Linear(dim, out_channels),
+                    Rearrange('b (h w) c -> b c h w', h=self.resolution, w=self.resolution)
+                )
+
     def forward(self, x, w, noise_mode='random', fused_modconv=True, gain=1):
         assert noise_mode in ['random', 'const', 'none']
         in_resolution = self.resolution // self.up
@@ -294,6 +330,7 @@ class SynthesisLayer(torch.nn.Module):
             noise = torch.randn([x.shape[0], 1, self.resolution, self.resolution], device=x.device) * self.noise_strength
         if self.use_noise and noise_mode == 'const':
             noise = self.noise_const * self.noise_strength
+        
 
         flip_weight = (self.up == 1) # slightly faster
         x = modulated_conv2d(x=x, weight=self.weight, styles=styles, noise=noise, up=self.up,
@@ -302,6 +339,19 @@ class SynthesisLayer(torch.nn.Module):
         act_gain = self.act_gain * gain
         act_clamp = self.conv_clamp * gain if self.conv_clamp is not None else None
         x = bias_act.bias_act(x, self.bias.to(x.dtype), act=self.activation, gain=act_gain, clamp=act_clamp)
+    
+        if self.resolution <256:
+            # print("before input",x.shape)
+
+            ###### add gmlp here
+            # print(self.to_embed)
+            x = self.to_embed(x)
+            # print("after embed",x.shape)
+            x = self.gmlpblock(x)
+            # print("after gmlp",x.shape)
+            x = self.to_img(x)
+            # print("after to img",x.shape)
+            ######
         return x
 
 #----------------------------------------------------------------------------
