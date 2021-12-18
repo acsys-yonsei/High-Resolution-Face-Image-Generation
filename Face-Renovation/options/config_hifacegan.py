@@ -90,7 +90,7 @@ class TrainOptions(object):
 
 
 class TestOptions(object):
-    dataroot = '/nfs/home_new/gjffl357/realimages_256'
+    dataroot = '<your dataset folder>'
     name = '4xsr'
     results_dir = './results/real'
     gpu_ids = [0]
