@@ -5,8 +5,7 @@
 SRGAN can upscale given images while revise quality of them.
 
 ### Pretrained Weights
-If there is not enough time to train SRGAN from scratch, a pretrained model is needed.
-
+If there is not enough time to train SRGAN from scratch, a pretrained model is needed.      
 Pretrained weights are provided below.
 
 [BaiduNetDisk](https://pan.baidu.com/s/15_vhGQdkHIfLCRgo7xanpg): Extraction code：cxp0
