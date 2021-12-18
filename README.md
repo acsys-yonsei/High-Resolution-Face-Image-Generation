@@ -8,18 +8,15 @@ SRGAN can upscale given images while revise quality of them.
 If there is not enough time to train SRGAN from scratch, a pretrained model is needed.      
 Pretrained weights are provided below.
 
-[BaiduNetDisk](https://pan.baidu.com/s/15_vhGQdkHIfLCRgo7xanpg): Extraction code：cxp0
-
+[BaiduNetDisk](https://pan.baidu.com/s/15_vhGQdkHIfLCRgo7xanpg): Extraction code：cxp0       
 [YandexDisk](https://yadi.sk/d/Pl_hxVZPa_PHew)
 
 
 After download the file, unzip and put them under `Face-Renovation/checkpoints`.
 
 ### Target Data
-To set path of source data, open `Face-Renovation/options/config_hifacegan.py` and change variable `dataroot` of `TestOptions` class.
-
-Also, variable `name` should also be changed to the target model you want to use.
-
+To set path of source data, open `Face-Renovation/options/config_hifacegan.py` and change variable `dataroot` of `TestOptions` class.       
+Also, variable `name` should also be changed to the target model you want to use.       
 Some other variables may also be needed to change depending on the target model.
 
 ### Inference
