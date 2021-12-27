@@ -1,6 +1,17 @@
 # High-Resolution-Face-Image-Generation
 
 ## GANformer
+Training GANformer is the same as in the original github repo [GANformer](https://github.com/dorarad/gansformer).
+Here we provide minimal information on how to run the code.
+For more details on its usage, please refer to the original repo.   
+
+### Train
+     python run_network.py --train --gpus 0 --ganformer-default --expname "$EXPNAME" --dataset ffhq
+
+### Evaluation
+     python3 run_network.py --eval --gpus 0 --expname "$EXPNAME" --dataset ffhq
+
+
 ## SRGAN
 SRGAN can upscale given images while revise quality of them.
 
@@ -57,4 +68,3 @@ Train SVM using saved latent vectors and their scores. Specify output file accor
         -i data/ffhq1024/latents_all.npy \
         -n 100 --max 1000
 
-## gMLP
